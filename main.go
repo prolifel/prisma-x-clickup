@@ -1,0 +1,55 @@
+package main
+
+import (
+	"log"
+	"prisma-webhook/config"
+	"prisma-webhook/handlers"
+	"prisma-webhook/services"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+)
+
+func main() {
+	// Load configuration
+	cfg := config.Load()
+
+	// Initialize services
+	clickUpClient := services.NewClickUpClient(cfg)
+
+	// Initialize handlers
+	webhookHandler := handlers.NewWebhookHandler(clickUpClient)
+
+	// Create Fiber app
+	app := fiber.New(fiber.Config{
+		AppName: "Prisma Cloud to ClickUp Webhook",
+	})
+
+	// Middleware
+	app.Use(logger.New())
+	app.Use(recover.New())
+
+	// Routes
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"service": "Prisma Cloud to ClickUp Webhook",
+			"version": "1.0.0",
+			"status":  "running",
+		})
+	})
+
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "healthy",
+		})
+	})
+
+	app.Post("/webhook", webhookHandler.HandlePrismaWebhook)
+
+	// Start server
+	log.Printf("Starting server on port %s", cfg.Port)
+	if err := app.Listen(":" + cfg.Port); err != nil {
+		log.Fatal(err)
+	}
+}
