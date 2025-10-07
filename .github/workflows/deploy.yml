@@ -21,6 +21,7 @@ jobs:
       - name: Build Go application
         run: |
           go mod download
+          go mod tidy
           go build -v -o prisma-webhook .
 
       - name: Run tests
