@@ -11,6 +11,8 @@ services:
       - CLICKUP_API_TOKEN=${CLICKUP_API_TOKEN}
       - CLICKUP_LIST_ID=${CLICKUP_LIST_ID}
       - CLICKUP_ASSIGNEES=${CLICKUP_ASSIGNEES}
+      - WEBHOOK_API_KEY=${WEBHOOK_API_KEY}
+      - ALLOWED_IPS=${ALLOWED_IPS}
     env_file:
       - .env
     restart: unless-stopped
