@@ -13,7 +13,7 @@ A lightweight Go Fiber HTTP backend that receives webhook notifications from Pri
 
 ## Prerequisites
 
-- Go 1.21 or later (for local development)
+- Go 1.23 or later (for local development)
 - Docker and Docker Compose (for containerized deployment)
 - ClickUp API Token
 - ClickUp List ID
@@ -192,6 +192,10 @@ prisma-webhook/
 │   └── clickup.go          # ClickUp API client
 ├── handlers/
 │   └── webhook.go          # Webhook handler
+├── .github/
+│   └── workflows/
+│       ├── deploy.yml      # CI/CD workflow
+│       └── README.md       # Workflow documentation
 ├── Dockerfile              # Docker build configuration
 ├── docker-compose.yml      # Docker Compose configuration
 ├── go.mod                  # Go module dependencies
@@ -219,6 +223,15 @@ go test ./...
 ```bash
 docker build -t prisma-webhook:latest .
 ```
+
+## CI/CD Deployment
+
+This project includes GitHub Actions for automated deployment. See [.github/workflows/README.md](.github/workflows/README.md) for setup instructions.
+
+**Quick setup:**
+1. Configure GitHub Secrets (Docker Hub credentials, SSH details)
+2. Push to `main` branch to trigger automatic deployment
+3. Workflow builds Docker image and deploys to your server
 
 ## Troubleshooting
 

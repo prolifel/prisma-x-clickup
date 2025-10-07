@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   prisma-webhook:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${DOCKER_IMAGE:-prisma-webhook:latest}
     container_name: prisma-webhook
     ports:
       - "${PORT:-8080}:8080"
