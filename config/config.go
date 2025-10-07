@@ -14,6 +14,8 @@ type Config struct {
 	ClickUpAPIToken  string
 	ClickUpListID    string
 	ClickUpAssignees []int
+	WebhookAPIKey    string
+	AllowedIPs       []string
 }
 
 func Load() *Config {
@@ -51,10 +53,29 @@ func Load() *Config {
 		}
 	}
 
+	webhookAPIKey := os.Getenv("WEBHOOK_API_KEY")
+	if webhookAPIKey == "" {
+		log.Fatal("WEBHOOK_API_KEY is required")
+	}
+
+	var allowedIPs []string
+	allowedIPsStr := os.Getenv("ALLOWED_IPS")
+	if allowedIPsStr != "" {
+		ipStrs := strings.Split(allowedIPsStr, ",")
+		for _, ip := range ipStrs {
+			allowedIPs = append(allowedIPs, strings.TrimSpace(ip))
+		}
+		log.Printf("IP allowlist enabled with %d IP(s)", len(allowedIPs))
+	} else {
+		log.Println("Warning: No IP allowlist configured. All IPs will be allowed.")
+	}
+
 	return &Config{
 		Port:             port,
 		ClickUpAPIToken:  clickUpToken,
 		ClickUpListID:    clickUpListID,
 		ClickUpAssignees: assignees,
+		WebhookAPIKey:    webhookAPIKey,
+		AllowedIPs:       allowedIPs,
 	}
 }

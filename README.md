@@ -80,6 +80,8 @@ go run main.go
 | `CLICKUP_API_TOKEN` | Yes | ClickUp API token | `pk_xxxxx` |
 | `CLICKUP_LIST_ID` | Yes | Target ClickUp list ID | `123456789` |
 | `CLICKUP_ASSIGNEES` | No | Comma-separated user IDs | `183,245,678` |
+| `WEBHOOK_API_KEY` | Yes | API key for webhook authentication | `generated_key_here` |
+| `ALLOWED_IPS` | No | Comma-separated allowed IPs | `203.0.113.1,198.51.100.0` |
 
 ## API Endpoints
 
@@ -107,6 +109,17 @@ Health check for container orchestration.
 
 ### `POST /webhook`
 Receives Prisma Cloud alert webhooks and creates ClickUp tasks.
+
+**Security:**
+- Requires `X-API-Key` header with valid API key
+- IP allowlist validation (if configured)
+- Rate limit: 100 requests per minute per IP
+
+**Headers:**
+```
+X-API-Key: your_webhook_api_key
+Content-Type: application/json
+```
 
 **Request Body (Example):**
 ```json
@@ -145,6 +158,7 @@ Receives Prisma Cloud alert webhooks and creates ClickUp tasks.
 4. Configure:
    - **Integration Name**: ClickUp Webhook
    - **URL**: `http://your-server:8080/webhook`
+   - **Custom Headers**: Add `X-API-Key` header with your webhook API key
    - **Custom Payload**: Enable and use this template:
 
 ```json
@@ -233,7 +247,60 @@ This project includes GitHub Actions for automated deployment. See [.github/work
 2. Push to `main` branch to trigger automatic deployment
 3. Workflow builds Docker image and deploys to your server
 
+## Security
+
+### Multi-Layer Security Protection
+
+This application implements multiple security layers:
+
+1. **API Key Authentication**: All webhook requests must include `X-API-Key` header
+2. **IP Allowlisting**: Restrict access to known Prisma Cloud IP addresses
+3. **Rate Limiting**: Prevent abuse with configurable rate limits
+
+### Generating API Key
+
+```bash
+# Generate a secure random API key
+openssl rand -hex 32
+```
+
+Add the generated key to your `.env` file and Prisma Cloud webhook configuration.
+
+### Rate Limits
+
+| Endpoint | Rate Limit | Notes |
+|----------|------------|-------|
+| `/webhook` | 100 req/min per IP | For handling burst alerts |
+| `/` | 60 req/min per IP | General endpoint |
+| `/health` | No limit | For monitoring systems |
+
+### Getting Prisma Cloud IPs
+
+To configure IP allowlist:
+1. Contact Prisma Cloud support or check documentation for webhook source IPs
+2. Add IPs to `ALLOWED_IPS` in `.env` (comma-separated)
+3. Leave empty to allow all IPs (not recommended for production)
+
 ## Troubleshooting
+
+### Issue: "WEBHOOK_API_KEY is required"
+- Ensure `.env` file contains `WEBHOOK_API_KEY`
+- Generate key with: `openssl rand -hex 32`
+
+### Issue: "Unauthorized: Invalid or missing API key"
+- Verify `X-API-Key` header is included in webhook requests
+- Ensure the key matches `WEBHOOK_API_KEY` in `.env`
+- Check Prisma Cloud webhook configuration has correct header
+
+### Issue: "Access denied: IP not allowed"
+- Verify the IP is in `ALLOWED_IPS` list
+- Check if you're behind a proxy/load balancer (IP may differ)
+- Leave `ALLOWED_IPS` empty for testing (not recommended for production)
+
+### Issue: "Rate limit exceeded"
+- Default limits: 100 req/min for webhook, 60 req/min for general
+- Wait for the time window to reset
+- Adjust limits in `middleware/ratelimit.go` if needed
 
 ### Issue: "CLICKUP_API_TOKEN is required"
 - Ensure `.env` file exists and contains valid `CLICKUP_API_TOKEN`
