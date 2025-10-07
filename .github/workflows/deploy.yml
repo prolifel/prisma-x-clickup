@@ -46,17 +46,17 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/prisma-webhook:buildcache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/prisma-webhook:buildcache,mode=max
 
-      - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd /path/to/prisma-webhook
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker-compose pull
-            docker-compose down
-            docker-compose up -d
-            docker system prune -f
+      # - name: Deploy to server via SSH
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     port: ${{ secrets.SSH_PORT }}
+      #     script: |
+      #       cd /path/to/prisma-webhook
+      #       echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      #       docker-compose pull
+      #       docker-compose down
+      #       docker-compose up -d
+      #       docker system prune -f
