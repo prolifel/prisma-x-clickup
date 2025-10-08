@@ -4,6 +4,7 @@ import (
 	"log"
 	"prisma-webhook/models"
 	"prisma-webhook/services"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -31,7 +32,7 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 	if err := c.BodyParser(&alerts); err != nil {
 		// If array parsing fails, try single object
 		if err := c.BodyParser(&singleAlert); err != nil {
-			log.Printf("Failed to parse webhook payload: %v", err)
+			log.Printf("Failed to parse webhook payload: %v, request: %v", err, string(c.Body()))
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Invalid request payload",
 			})
@@ -53,8 +54,14 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 	// Create ClickUp task for each alert
 	var createdTasks []string
 	var errors []string
+	var isTestMessage bool
 
 	for i, alert := range alerts {
+		if strings.HasPrefix(alert.Message, "This is a test message from Prisma Cloud initiated") {
+			isTestMessage = true
+			break
+		}
+
 		log.Printf("Processing alert %d: %s (Severity: %s)", i+1, alert.PolicyName, alert.Severity)
 
 		task, err := h.clickUpClient.CreateTask(&alert)
@@ -67,6 +74,12 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 
 		log.Printf("Created ClickUp task: %s (ID: %s)", task.Name, task.ID)
 		createdTasks = append(createdTasks, task.ID)
+	}
+
+	if isTestMessage {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"message": "Test webhook received",
+		})
 	}
 
 	// Build response

@@ -22,7 +22,7 @@ type PrismaAlert struct {
 	RiskRating        string    `json:"riskRating"`
 	CallbackURL       string    `json:"callbackUrl"`
 	Sender            string    `json:"sender"`
-	SentTs            string    `json:"sentTs"`
+	SentTs            int64     `json:"sentTs"`
 	Message           string    `json:"message"`
 }
 
