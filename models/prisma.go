@@ -4,23 +4,26 @@ import "time"
 
 // PrismaAlert represents the webhook payload from Prisma Cloud
 type PrismaAlert struct {
-	ResourceID       string    `json:"resourceId"`
-	AlertRuleName    string    `json:"alertRuleName"`
-	AccountName      string    `json:"accountName"`
-	CloudType        string    `json:"cloudType"`
-	Severity         string    `json:"severity"`
-	PolicyName       string    `json:"policyName"`
-	ResourceName     string    `json:"resourceName"`
-	PolicyDescription string   `json:"policyDescription"`
-	AlertID          string    `json:"alertId"`
-	AlertStatus      string    `json:"alertStatus"`
-	AlertTime        time.Time `json:"alertTime"`
-	ResourceRegion   string    `json:"resourceRegion"`
-	ResourceType     string    `json:"resourceType"`
-	PolicyID         string    `json:"policyId"`
-	PolicyType       string    `json:"policyType"`
-	RiskRating       string    `json:"riskRating"`
-	CallbackURL      string    `json:"callbackUrl"`
+	ResourceID        string    `json:"resourceId"`
+	AlertRuleName     string    `json:"alertRuleName"`
+	AccountName       string    `json:"accountName"`
+	CloudType         string    `json:"cloudType"`
+	Severity          string    `json:"severity"`
+	PolicyName        string    `json:"policyName"`
+	ResourceName      string    `json:"resourceName"`
+	PolicyDescription string    `json:"policyDescription"`
+	AlertID           string    `json:"alertId"`
+	AlertStatus       string    `json:"alertStatus"`
+	AlertTime         time.Time `json:"alertTime"`
+	ResourceRegion    string    `json:"resourceRegion"`
+	ResourceType      string    `json:"resourceType"`
+	PolicyID          string    `json:"policyId"`
+	PolicyType        string    `json:"policyType"`
+	RiskRating        string    `json:"riskRating"`
+	CallbackURL       string    `json:"callbackUrl"`
+	Sender            string    `json:"sender"`
+	SentTs            string    `json:"sentTs"`
+	Message           string    `json:"message"`
 }
 
 // GetPriority maps Prisma Cloud severity to ClickUp priority
