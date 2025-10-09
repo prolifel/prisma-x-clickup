@@ -34,3 +34,5 @@ Thumbs.db
 # Application
 prisma-webhook
 main
+
+**/*.json

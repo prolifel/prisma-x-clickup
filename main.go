@@ -52,7 +52,7 @@ func main() {
 	app.Get("/", middleware.GeneralRateLimit(), func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"service": "Prisma Cloud to ClickUp Webhook",
-			"version": "1.0.0",
+			"version": "1.1.0",
 			"status":  "running",
 		})
 	})
