@@ -23,6 +23,7 @@ func NewWebhookHandler(clickUpClient *services.ClickUpClient) *WebhookHandler {
 func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 	// Log the incoming request
 	log.Printf("Received webhook from %s", c.IP())
+	log.Printf("Payload: %v", string(c.Request().Body()))
 
 	// Parse the request body
 	var alerts []models.PrismaAlert
