@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"prisma-webhook/config"
 	"prisma-webhook/handlers"
 	"prisma-webhook/middleware"
@@ -28,7 +29,15 @@ func main() {
 	})
 
 	// Middleware
-	app.Use(logger.New())
+	// Custom File Writer
+	file, err := os.OpenFile("./123.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer file.Close()
+	app.Use(logger.New(logger.Config{
+		Output: file,
+	}))
 	app.Use(recover.New())
 
 	// Routes

@@ -1,7 +1,8 @@
 package handlers
 
 import (
-	"log"
+	"github.com/gofiber/fiber/v2/log"
+
 	"prisma-webhook/models"
 	"prisma-webhook/services"
 	"strings"
@@ -22,8 +23,8 @@ func NewWebhookHandler(clickUpClient *services.ClickUpClient) *WebhookHandler {
 // HandlePrismaWebhook processes incoming Prisma Cloud webhook alerts
 func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 	// Log the incoming request
-	log.Printf("Received webhook from %s", c.IP())
-	log.Printf("Payload: %v", string(c.Request().Body()))
+	log.Infof("Received webhook from %s", c.IP())
+	log.Infof("Payload: %v", string(c.Request().Body()))
 
 	// Parse the request body
 	var alerts []models.PrismaAlert
@@ -33,7 +34,7 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 	if err := c.BodyParser(&alerts); err != nil {
 		// If array parsing fails, try single object
 		if err := c.BodyParser(&singleAlert); err != nil {
-			log.Printf("Failed to parse webhook payload: %v, request: %v", err, string(c.Body()))
+			log.Infof("Failed to parse webhook payload: %v, request: %v", err, string(c.Body()))
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Invalid request payload",
 			})
@@ -44,13 +45,13 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 
 	// If no alerts received
 	if len(alerts) == 0 {
-		log.Println("No alerts in webhook payload")
+		log.Info("No alerts in webhook payload")
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "No alerts in payload",
 		})
 	}
 
-	log.Printf("Processing %d alert(s)", len(alerts))
+	log.Infof("Processing %d alert(s)", len(alerts))
 
 	// Create ClickUp task for each alert
 	var createdTasks []string
@@ -63,17 +64,17 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 			break
 		}
 
-		log.Printf("Processing alert %d: %s (Severity: %s)", i+1, alert.PolicyName, alert.Severity)
+		log.Infof("Processing alert %d: %s (Severity: %s)", i+1, alert.PolicyName, alert.Severity)
 
 		task, err := h.clickUpClient.CreateTask(&alert)
 		if err != nil {
 			errMsg := "Failed to create task for alert: " + err.Error()
-			log.Printf("Error for alert %d: %s", i+1, errMsg)
+			log.Infof("Error for alert %d: %s", i+1, errMsg)
 			errors = append(errors, errMsg)
 			continue
 		}
 
-		log.Printf("Created ClickUp task: %s (ID: %s)", task.Name, task.ID)
+		log.Infof("Created ClickUp task: %s (ID: %s)", task.Name, task.ID)
 		createdTasks = append(createdTasks, task.ID)
 	}
 
