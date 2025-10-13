@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+)
 
 // PrismaAlert represents the webhook payload from Prisma Cloud
 type PrismaAlert struct {
@@ -82,17 +86,25 @@ func (p *PrismaAlert) GetPriority() int {
 // GetTaskTitle generates a task title from the alert
 func (p *PrismaAlert) GetTaskTitle() string {
 	if p.PolicyName != "" {
-		return "[Prisma Cloud] " + p.PolicyName
+		return fmt.Sprintf("[%s] - %s", strings.ToUpper(p.Severity), p.PolicyName)
 	}
 	if p.Policy.Name != "" {
-		return "[Prisma Cloud] " + p.Policy.Name
+		return fmt.Sprintf("[%s] - %s", strings.ToUpper(p.Policy.Severity), p.Policy.Name)
 	}
 	return "[Prisma Cloud] Security Alert"
 }
 
 // GetTaskDescription generates a detailed task description from the alert
 func (p *PrismaAlert) GetTaskDescription() string {
-	desc := "Prisma Cloud Security Alert\n\n"
+	desc := "\n\n"
+
+	if p.PolicyDescription != "" {
+		desc += "Description: " + p.PolicyDescription + "\n\n"
+	}
+
+	if p.Policy.Description != "" {
+		desc += "Description: " + p.Policy.Description + "\n\n"
+	}
 
 	if p.AlertID != "" {
 		desc += "Alert ID: " + p.AlertID + "\n\n"
@@ -108,14 +120,6 @@ func (p *PrismaAlert) GetTaskDescription() string {
 
 	if p.Policy.Name != "" {
 		desc += "Policy: " + p.Policy.Name + "\n\n"
-	}
-
-	if p.PolicyDescription != "" {
-		desc += "Description: " + p.PolicyDescription + "\n\n"
-	}
-
-	if p.Policy.Description != "" {
-		desc += "Description: " + p.Policy.Description + "\n\n"
 	}
 
 	if p.Policy.Recommendation != "" {
