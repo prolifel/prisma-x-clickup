@@ -45,14 +45,14 @@ type Account struct {
 }
 
 type Policy struct {
-	Name           string `json:"name"`
-	Id             string `json:"id"`
-	Description    string `json:"description"`
-	Recommendation string `json:"recommendation"`
-	Severity       string `json:"severity"`
-	Labels         string `json:"labels"`
-	PolicyTs       string `json:"policyTs"`
-	PolicyType     string `json:"policyType"`
+	Name           string   `json:"name"`
+	Id             string   `json:"id"`
+	Description    string   `json:"description"`
+	Recommendation string   `json:"recommendation"`
+	Severity       string   `json:"severity"`
+	Labels         []string `json:"labels"`
+	PolicyTs       string   `json:"policyTs"`
+	PolicyType     string   `json:"policyType"`
 }
 
 type Resource struct {

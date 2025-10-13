@@ -36,3 +36,5 @@ prisma-webhook
 main
 
 **/*.json
+
+**/*.log
