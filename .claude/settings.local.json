@@ -7,7 +7,8 @@
       "WebFetch(domain:docs.prismacloud.io)",
       "WebFetch(domain:endgrate.com)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:knowledgebase.paloaltonetworks.com)"
+      "WebFetch(domain:knowledgebase.paloaltonetworks.com)",
+      "Bash(go build)"
     ],
     "deny": [],
     "ask": []

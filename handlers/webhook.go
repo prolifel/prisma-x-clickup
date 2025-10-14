@@ -12,11 +12,15 @@ import (
 
 type WebhookHandler struct {
 	clickUpClient *services.ClickUpClient
+	msGraphClient *services.MSGraphClient
+	teamsClient   *services.TeamsClient
 }
 
-func NewWebhookHandler(clickUpClient *services.ClickUpClient) *WebhookHandler {
+func NewWebhookHandler(clickUpClient *services.ClickUpClient, msGraphClient *services.MSGraphClient, teamsClient *services.TeamsClient) *WebhookHandler {
 	return &WebhookHandler{
 		clickUpClient: clickUpClient,
+		msGraphClient: msGraphClient,
+		teamsClient:   teamsClient,
 	}
 }
 
@@ -57,6 +61,8 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 	var createdTasks []string
 	var errors []string
 	var isTestMessage bool
+	var sharepointPages []string
+	var teamsNotifications []string
 
 	for i, alert := range alerts {
 		if strings.HasPrefix(alert.Message, "This is a test message from Prisma Cloud initiated") {
@@ -66,6 +72,7 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 
 		log.Infof("Processing alert %d: %s (Severity: %s)", i+1, alert.PolicyName, alert.Severity)
 
+		// Step 1: Create ClickUp task
 		task, err := h.clickUpClient.CreateTask(&alert)
 		if err != nil {
 			errMsg := "Failed to create task for alert: " + err.Error()
@@ -76,6 +83,35 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 
 		log.Infof("Created ClickUp task: %s (ID: %s)", task.Name, task.ID)
 		createdTasks = append(createdTasks, task.ID)
+
+		clickupURL := task.URL
+
+		// Step 2: Create SharePoint page (if enabled)
+		var sharepointURL string
+		if h.msGraphClient.IsEnabled() {
+			sharepointURL, err = h.msGraphClient.CreateSharePointPage(&alert, clickupURL)
+			if err != nil {
+				errMsg := "Failed to create SharePoint page: " + err.Error()
+				log.Infof("Warning for alert %d: %s", i+1, errMsg)
+				errors = append(errors, errMsg)
+			} else {
+				log.Infof("Created SharePoint page: %s", sharepointURL)
+				sharepointPages = append(sharepointPages, sharepointURL)
+			}
+		}
+
+		// Step 3: Send Teams notification (if enabled)
+		if h.teamsClient.IsEnabled() {
+			err = h.teamsClient.SendTeamsNotification(&alert, clickupURL, sharepointURL)
+			if err != nil {
+				errMsg := "Failed to send Teams notification: " + err.Error()
+				log.Infof("Warning for alert %d: %s", i+1, errMsg)
+				errors = append(errors, errMsg)
+			} else {
+				log.Infof("Sent Teams notification for alert %d", i+1)
+				teamsNotifications = append(teamsNotifications, "sent")
+			}
+		}
 	}
 
 	if isTestMessage {
@@ -89,6 +125,15 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 		"received":      len(alerts),
 		"tasks_created": len(createdTasks),
 		"task_ids":      createdTasks,
+	}
+
+	if len(sharepointPages) > 0 {
+		response["sharepoint_pages_created"] = len(sharepointPages)
+		response["sharepoint_urls"] = sharepointPages
+	}
+
+	if len(teamsNotifications) > 0 {
+		response["teams_notifications_sent"] = len(teamsNotifications)
 	}
 
 	if len(errors) > 0 {

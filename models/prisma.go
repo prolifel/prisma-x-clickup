@@ -36,7 +36,7 @@ type PrismaAlert struct {
 	Metadata          Metadata  `json:"metadata"`
 	Reason            string    `json:"reason"`
 	AlertRuleId       string    `json:"alertRuleId"`
-	Alertts           string    `json:"alertTs"`
+	AlertTs           string    `json:"alertTs"`
 	Firstseen         string    `json:"firstSeen"`
 	Lastseen          string    `json:"lastSeen"`
 	Service           string    `json:"service"`

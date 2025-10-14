@@ -16,6 +16,15 @@ type Config struct {
 	ClickUpAssignees []int
 	WebhookAPIKey    string
 	AllowedIPs       []string
+
+	// Azure AD / Microsoft Graph
+	AzureTenantID     string
+	AzureClientID     string
+	AzureClientSecret string
+	SharePointSiteID  string
+
+	// Microsoft Teams
+	TeamsWebhookURL string
 }
 
 func Load() *Config {
@@ -70,12 +79,35 @@ func Load() *Config {
 		log.Println("Warning: No IP allowlist configured. All IPs will be allowed.")
 	}
 
+	// Azure AD / Microsoft Graph (optional)
+	azureTenantID := os.Getenv("AZURE_TENANT_ID")
+	azureClientID := os.Getenv("AZURE_CLIENT_ID")
+	azureClientSecret := os.Getenv("AZURE_CLIENT_SECRET")
+	sharePointSiteID := os.Getenv("SHAREPOINT_SITE_ID")
+
+	if azureTenantID != "" && azureClientID != "" && azureClientSecret != "" && sharePointSiteID != "" {
+		log.Println("SharePoint integration enabled")
+	} else if azureTenantID != "" || azureClientID != "" || azureClientSecret != "" || sharePointSiteID != "" {
+		log.Println("Warning: SharePoint integration partially configured. All Azure AD fields are required.")
+	}
+
+	// Microsoft Teams Webhook (optional)
+	teamsWebhookURL := os.Getenv("TEAMS_WEBHOOK_URL")
+	if teamsWebhookURL != "" {
+		log.Println("Teams webhook integration enabled")
+	}
+
 	return &Config{
-		Port:             port,
-		ClickUpAPIToken:  clickUpToken,
-		ClickUpListID:    clickUpListID,
-		ClickUpAssignees: assignees,
-		WebhookAPIKey:    webhookAPIKey,
-		AllowedIPs:       allowedIPs,
+		Port:              port,
+		ClickUpAPIToken:   clickUpToken,
+		ClickUpListID:     clickUpListID,
+		ClickUpAssignees:  assignees,
+		WebhookAPIKey:     webhookAPIKey,
+		AllowedIPs:        allowedIPs,
+		AzureTenantID:     azureTenantID,
+		AzureClientID:     azureClientID,
+		AzureClientSecret: azureClientSecret,
+		SharePointSiteID:  sharePointSiteID,
+		TeamsWebhookURL:   teamsWebhookURL,
 	}
 }
