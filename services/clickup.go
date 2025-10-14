@@ -17,11 +17,11 @@ type ClickUpClient struct {
 }
 
 type CreateTaskRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Assignees   []int  `json:"assignees,omitempty"`
-	Priority    int    `json:"priority,omitempty"`
-	Status      string `json:"status,omitempty"`
+	Name                string `json:"name"`
+	MarkdownDescription string `json:"markdown_description"`
+	Assignees           []int  `json:"assignees,omitempty"`
+	Priority            int    `json:"priority,omitempty"`
+	Status              string `json:"status,omitempty"`
 }
 
 type CreateTaskResponse struct {
@@ -45,11 +45,11 @@ func (c *ClickUpClient) CreateTask(alert *models.PrismaAlert) (*CreateTaskRespon
 	url := fmt.Sprintf("https://api.clickup.com/api/v2/list/%s/task", c.listID)
 
 	taskReq := CreateTaskRequest{
-		Name:        alert.GetTaskTitle(),
-		Description: alert.GetTaskDescription(),
-		Assignees:   c.assignees,
-		Priority:    alert.GetPriority(),
-		Status:      "Open",
+		Name:                alert.GetTaskTitle(),
+		MarkdownDescription: alert.GetTaskDescriptionV2(),
+		Assignees:           c.assignees,
+		Priority:            alert.GetPriority(),
+		Status:              "Open",
 	}
 
 	jsonData, err := json.Marshal(taskReq)

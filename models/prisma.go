@@ -160,3 +160,71 @@ func (p *PrismaAlert) GetTaskDescription() string {
 
 	return desc
 }
+
+func (p *PrismaAlert) GetTaskDescriptionV2() string {
+	desc := "# Prisma Cloud Alert Summary\n"
+	desc += "## Alerts Detail\n"
+	desc += "| **Field** | **Detail** |\n"
+	desc += "| ------ | ------ |\n"
+
+	if p.AlertID != "" {
+		desc += "| **Alert ID** | " + p.AlertID + " |\n"
+	}
+
+	if p.Policy.Name != "" {
+		desc += "| **Policy Name** | " + p.Policy.Name + " |\n"
+	}
+
+	if p.Policy.PolicyType != "" {
+		desc += "| **Policy Type** | " + p.Policy.PolicyType + " |\n"
+	}
+
+	if p.Policy.Severity != "" {
+		desc += "| **Severity** | " + p.getSeverityColor(p.Policy.Severity) + " |\n"
+	}
+
+	if p.Account.Name != "" {
+		desc += "| **Cloud Account** | " + p.Account.Name + " |\n"
+	}
+
+	if p.Resource.ResourceName != "" {
+		desc += "| **Resource Type** | " + p.Resource.ResourceName + " |\n"
+	}
+
+	if p.Region != "" {
+		desc += "| **Region** | " + p.Region + " |\n"
+	}
+
+	if p.AlertStatus != "" {
+		desc += "| **Status** | " + p.AlertStatus + " |\n"
+	}
+
+	desc += "---\n"
+
+	desc += "## Description\n"
+	desc += p.Policy.Description + "\n"
+
+	desc += "## Remediation Recommendation\n"
+	desc += p.Policy.Recommendation + "\n"
+
+	desc += "---\n"
+
+	desc += "[View Alert on Prisma](https://app.id.prismacloud.io/alerts/overview?viewId=default&filters={\"alert.id\":[\"" + p.AlertID + "\"]})\n"
+
+	return desc
+}
+
+func (p *PrismaAlert) getSeverityColor(severity string) string {
+	switch strings.ToLower(severity) {
+	case "critical":
+		return "🔴 Critical" // Red
+	case "high":
+		return "🟠 High" // Red
+	case "medium":
+		return "🟡 Medium" // Orange/Yellow
+	case "low":
+		return "🟢 Low" // Green
+	default:
+		return "" // Default text color
+	}
+}

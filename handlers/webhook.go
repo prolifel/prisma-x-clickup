@@ -12,14 +12,15 @@ import (
 
 type WebhookHandler struct {
 	clickUpClient *services.ClickUpClient
-	msGraphClient *services.MSGraphClient
 	teamsClient   *services.TeamsClient
 }
 
-func NewWebhookHandler(clickUpClient *services.ClickUpClient, msGraphClient *services.MSGraphClient, teamsClient *services.TeamsClient) *WebhookHandler {
+func NewWebhookHandler(
+	clickUpClient *services.ClickUpClient,
+	teamsClient *services.TeamsClient,
+) *WebhookHandler {
 	return &WebhookHandler{
 		clickUpClient: clickUpClient,
-		msGraphClient: msGraphClient,
 		teamsClient:   teamsClient,
 	}
 }
@@ -85,24 +86,11 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 		createdTasks = append(createdTasks, task.ID)
 
 		clickupURL := task.URL
+		prismaURL := "https://app.id.prismacloud.io/alerts/overview?viewId=default&filters={\"alert.id\":[\"" + alert.AlertID + "\"]}\n"
 
-		// Step 2: Create SharePoint page (if enabled)
-		var sharepointURL string
-		if h.msGraphClient.IsEnabled() {
-			sharepointURL, err = h.msGraphClient.CreateSharePointPage(&alert, clickupURL)
-			if err != nil {
-				errMsg := "Failed to create SharePoint page: " + err.Error()
-				log.Infof("Warning for alert %d: %s", i+1, errMsg)
-				errors = append(errors, errMsg)
-			} else {
-				log.Infof("Created SharePoint page: %s", sharepointURL)
-				sharepointPages = append(sharepointPages, sharepointURL)
-			}
-		}
-
-		// Step 3: Send Teams notification (if enabled)
+		// Step 2: Send Teams notification (if enabled)
 		if h.teamsClient.IsEnabled() {
-			err = h.teamsClient.SendTeamsNotification(&alert, clickupURL, sharepointURL)
+			err = h.teamsClient.SendTeamsNotification(&alert, clickupURL, prismaURL)
 			if err != nil {
 				errMsg := "Failed to send Teams notification: " + err.Error()
 				log.Infof("Warning for alert %d: %s", i+1, errMsg)

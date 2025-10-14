@@ -61,16 +61,6 @@ type teamsAdaptiveCardAction struct {
 	URL   string `json:"url"`
 }
 
-// Legacy MessageCard structures (kept for backwards compatibility)
-type teamsMessageCard struct {
-	Type            string                 `json:"@type"`
-	Context         string                 `json:"@context"`
-	ThemeColor      string                 `json:"themeColor"`
-	Summary         string                 `json:"summary"`
-	Sections        []teamsSection         `json:"sections"`
-	PotentialAction []teamsPotentialAction `json:"potentialAction,omitempty"`
-}
-
 type teamsSection struct {
 	ActivityTitle    string      `json:"activityTitle,omitempty"`
 	ActivitySubtitle string      `json:"activitySubtitle,omitempty"`
@@ -108,7 +98,7 @@ func (t *TeamsClient) IsEnabled() bool {
 }
 
 // SendTeamsNotification sends an Adaptive Card notification to Microsoft Teams via webhook (Power Automate)
-func (t *TeamsClient) SendTeamsNotification(alert *models.PrismaAlert, clickupURL string, sharepointURL string) error {
+func (t *TeamsClient) SendTeamsNotification(alert *models.PrismaAlert, clickupURL string, prismaURL string) error {
 	if !t.IsEnabled() {
 		return fmt.Errorf("Teams client is not properly configured")
 	}
@@ -365,11 +355,11 @@ func (t *TeamsClient) SendTeamsNotification(alert *models.PrismaAlert, clickupUR
 		})
 	}
 
-	if sharepointURL != "" {
+	if prismaURL != "" {
 		actions = append(actions, teamsAdaptiveCardAction{
 			Type:  "Action.OpenUrl",
-			Title: "View Documentation",
-			URL:   sharepointURL,
+			Title: "View Prisma Detail Alert",
+			URL:   prismaURL,
 		})
 	}
 
@@ -422,22 +412,6 @@ func (t *TeamsClient) SendTeamsNotification(alert *models.PrismaAlert, clickupUR
 	}
 
 	return nil
-}
-
-// getSeverityColor returns a hex color for the severity level (legacy MessageCard)
-func (t *TeamsClient) getSeverityColor(severity string) string {
-	switch strings.ToLower(severity) {
-	case "critical":
-		return "8B0000" // Dark red
-	case "high":
-		return "D32F2F" // Red
-	case "medium":
-		return "F57C00" // Orange
-	case "low":
-		return "FBC02D" // Yellow
-	default:
-		return "757575" // Gray
-	}
 }
 
 // getSeverityColorName returns an Adaptive Card color name for the severity level

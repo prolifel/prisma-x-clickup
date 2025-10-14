@@ -19,11 +19,10 @@ func main() {
 
 	// Initialize services
 	clickUpClient := services.NewClickUpClient(cfg)
-	msGraphClient := services.NewMSGraphClient(cfg)
 	teamsClient := services.NewTeamsClient(cfg)
 
 	// Initialize handlers
-	webhookHandler := handlers.NewWebhookHandler(clickUpClient, msGraphClient, teamsClient)
+	webhookHandler := handlers.NewWebhookHandler(clickUpClient, teamsClient)
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
