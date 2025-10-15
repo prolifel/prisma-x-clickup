@@ -1,19 +1,10 @@
-version: '3.8'
 services:
   prisma-webhook:
     image: ${DOCKER_IMAGE:-prisma-webhook:latest}
     expose:
       - ${PORT:-7531}
-    environment:
-      - PORT=${PORT:-7531}
-      - CLICKUP_API_TOKEN=${CLICKUP_API_TOKEN}
-      - CLICKUP_ALERTA_LIST_ID=${CLICKUP_ALERTA_LIST_ID}
-      - CLICKUP_MANDATORY_LIST_ID=${CLICKUP_MANDATORY_LIST_ID}
-      - CLICKUP_ASSIGNEES=${CLICKUP_ASSIGNEES}
-      - WEBHOOK_API_KEY=${WEBHOOK_API_KEY}
-      - ALLOWED_IPS=${ALLOWED_IPS}
-      - TEAMS_ALERTA_WEBHOOK_URL=${TEAMS_ALERTA_WEBHOOK_URL}
-      - TEAMS_MANDATORY_WEBHOOK_URL=${TEAMS_MANDATORY_WEBHOOK_URL}
+    env_file:
+      - stack.env
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:7531/health"]
@@ -21,8 +12,10 @@ services:
       timeout: 3s
       retries: 3
       start_period: 5s
+    volumes:
+      - ./logs:/logs
     networks:
-      - nginx_proxy
+      - nginx_proxy # exposed via nginx proxy manager
 
 networks:
   nginx_proxy:
