@@ -75,7 +75,7 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 		log.Infof("Processing alert %d: %s (Severity: %s)", i+1, alert.PolicyName, alert.Severity)
 
 		// Step 1: Create ClickUp task
-		task, err := h.clickUpClient.CreateTask(&alert)
+		task, err := h.clickUpClient.CreateTask(&alert, c.Get("X-Type"))
 		if err != nil {
 			errMsg := "Failed to create task for alert: " + err.Error()
 			log.Infof("Error for alert %d: %s", i+1, errMsg)

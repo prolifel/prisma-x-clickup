@@ -10,12 +10,13 @@ import (
 )
 
 type Config struct {
-	Port             string
-	ClickUpAPIToken  string
-	ClickUpListID    string
-	ClickUpAssignees []int
-	WebhookAPIKey    string
-	AllowedIPs       []string
+	Port                   string
+	ClickUpAPIToken        string
+	ClickUpAlertaListID    string
+	ClickUpMandatoryListID string
+	ClickUpAssignees       []int
+	WebhookAPIKey          string
+	AllowedIPs             []string
 
 	// Azure AD / Microsoft Graph
 	AzureTenantID     string
@@ -44,9 +45,14 @@ func Load() *Config {
 		log.Fatal("CLICKUP_API_TOKEN is required")
 	}
 
-	clickUpListID := os.Getenv("CLICKUP_LIST_ID")
-	if clickUpListID == "" {
-		log.Fatal("CLICKUP_LIST_ID is required")
+	clickUpAlertaListID := os.Getenv("CLICKUP_ALERTA_LIST_ID")
+	if clickUpAlertaListID == "" {
+		log.Fatal("CLICKUP_ALERTA_LIST_ID is required")
+	}
+
+	clickUpMandatoryListID := os.Getenv("CLICKUP_MANDATORY_LIST_ID")
+	if clickUpMandatoryListID == "" {
+		log.Fatal("CLICKUP_MANDATORY_LIST_ID is required")
 	}
 
 	assigneesStr := os.Getenv("CLICKUP_ASSIGNEES")
@@ -106,7 +112,8 @@ func Load() *Config {
 	return &Config{
 		Port:                     port,
 		ClickUpAPIToken:          clickUpToken,
-		ClickUpListID:            clickUpListID,
+		ClickUpAlertaListID:      clickUpAlertaListID,
+		ClickUpMandatoryListID:   clickUpMandatoryListID,
 		ClickUpAssignees:         assignees,
 		WebhookAPIKey:            webhookAPIKey,
 		AllowedIPs:               allowedIPs,

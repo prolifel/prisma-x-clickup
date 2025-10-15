@@ -11,9 +11,10 @@ import (
 )
 
 type ClickUpClient struct {
-	apiToken  string
-	listID    string
-	assignees []int
+	apiToken        string
+	listAlertaID    string
+	listMandatoryID string
+	assignees       []int
 }
 
 type CreateTaskRequest struct {
@@ -35,14 +36,24 @@ type CreateTaskResponse struct {
 
 func NewClickUpClient(cfg *config.Config) *ClickUpClient {
 	return &ClickUpClient{
-		apiToken:  cfg.ClickUpAPIToken,
-		listID:    cfg.ClickUpListID,
-		assignees: cfg.ClickUpAssignees,
+		apiToken:        cfg.ClickUpAPIToken,
+		listAlertaID:    cfg.ClickUpAlertaListID,
+		listMandatoryID: cfg.ClickUpMandatoryListID,
+		assignees:       cfg.ClickUpAssignees,
 	}
 }
 
-func (c *ClickUpClient) CreateTask(alert *models.CustomPrismaAlert) (*CreateTaskResponse, error) {
-	url := fmt.Sprintf("https://api.clickup.com/api/v2/list/%s/task", c.listID)
+func (c *ClickUpClient) CreateTask(alert *models.CustomPrismaAlert, webhookType string) (*CreateTaskResponse, error) {
+	if webhookType != "mandatory" && webhookType != "alerta" {
+		return nil, fmt.Errorf("Webhook type is invalid: %s", webhookType)
+	}
+
+	listId := c.listAlertaID
+	if webhookType == "mandatory" {
+		listId = c.listMandatoryID
+	}
+
+	url := fmt.Sprintf("https://api.clickup.com/api/v2/list/%s/task", listId)
 
 	taskReq := CreateTaskRequest{
 		Name:                alert.GetTaskTitle(),
