@@ -426,27 +426,27 @@ func (t *TeamsClient) SendTeamsNotificationV2(alert *models.CustomPrismaAlert, c
 	}
 
 	policyName := ""
-	if alert.PolicyName == "" {
+	if alert.PolicyName != "" {
 		policyName = alert.PolicyName
 	}
 
 	resourceName := ""
-	if alert.ResourceName == "" {
+	if alert.ResourceName != "" {
 		resourceName = alert.ResourceName
 	}
 
 	accountName := ""
-	if alert.AccountName == "" {
+	if alert.AccountName != "" {
 		accountName = alert.AccountName
 	}
 
 	region := ""
-	if alert.ResourceRegion == "" {
+	if alert.ResourceRegion != "" {
 		region = alert.ResourceRegion
 	}
 
 	cloudType := ""
-	if alert.CloudType == "" {
+	if alert.CloudType != "" {
 		cloudType = alert.CloudType
 	}
 
