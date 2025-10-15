@@ -25,6 +25,9 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
+# Create logs directory
+RUN mkdir -p /logs
+
 # Copy the binary from builder
 COPY --from=builder /app/main .
 
