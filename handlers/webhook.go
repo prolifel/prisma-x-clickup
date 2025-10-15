@@ -86,11 +86,16 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 		createdTasks = append(createdTasks, task.ID)
 
 		clickupURL := task.URL
-		prismaURL := "https://app.id.prismacloud.io/alerts/overview?viewId=default&filters={\"alert.id\":[\"" + alert.AlertID + "\"]}\n"
+
+		prismaURL := ""
+		if alert.CallbackUrl != "" {
+			prismaURL = alert.CallbackUrl
+		}
+		// prismaURL := "https://app.id.prismacloud.io/alerts/overview?viewId=default&filters={\"alert.id\":[\"" + alert.AlertID + "\"]}\n"
 
 		// Step 2: Send Teams notification (if enabled)
 		if h.teamsClient.IsEnabled() {
-			err = h.teamsClient.SendTeamsNotification(&alert, clickupURL, prismaURL)
+			err = h.teamsClient.SendTeamsNotificationV2(&alert, clickupURL, prismaURL)
 			if err != nil {
 				errMsg := "Failed to send Teams notification: " + err.Error()
 				log.Infof("Warning for alert %d: %s", i+1, errMsg)
