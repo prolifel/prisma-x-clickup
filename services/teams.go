@@ -414,6 +414,352 @@ func (t *TeamsClient) SendTeamsNotification(alert *models.PrismaAlert, clickupUR
 	return nil
 }
 
+func (t *TeamsClient) SendTeamsNotificationV2(alert *models.CustomPrismaAlert, clickupURL string, prismaURL string) error {
+	if !t.IsEnabled() {
+		return fmt.Errorf("Teams client is not properly configured")
+	}
+
+	// Extract alert details with fallbacks
+	severity := ""
+	if alert.Severity != "" {
+		severity = alert.Severity
+	}
+
+	policyName := ""
+	if alert.PolicyName == "" {
+		policyName = alert.PolicyName
+	}
+
+	resourceName := ""
+	if alert.ResourceName == "" {
+		resourceName = alert.ResourceName
+	}
+
+	accountName := ""
+	if alert.AccountName == "" {
+		accountName = alert.AccountName
+	}
+
+	region := ""
+	if alert.ResourceRegion == "" {
+		region = alert.ResourceRegion
+	}
+
+	cloudType := ""
+	if alert.CloudType == "" {
+		cloudType = alert.CloudType
+	}
+
+	tags := ""
+	if alert.Tags != nil {
+		tags = fmt.Sprintf("%v", alert.Tags)
+	}
+
+	// Determine severity color
+	severityColor := t.getSeverityColorName(severity)
+
+	// parse alertTs
+	alertTime := time.UnixMilli(alert.AlertTs)
+
+	// Build Adaptive Card body
+	body := []teamsAdaptiveCardElement{
+		{
+			Type:   "TextBlock",
+			Text:   "🔔 Prisma Cloud Security Alert",
+			Size:   "Large",
+			Weight: "Bolder",
+			Wrap:   true,
+		},
+		{
+			Type:      "TextBlock",
+			Text:      fmt.Sprintf("**Severity:** %s", strings.ToUpper(severity)),
+			Color:     severityColor,
+			Size:      "Medium",
+			Weight:    "Bolder",
+			Wrap:      true,
+			Separator: true,
+		},
+		{
+			Type:    "TextBlock",
+			Text:    "**Policy Violation Details**",
+			Weight:  "Bolder",
+			Spacing: "Medium",
+			Wrap:    true,
+		},
+		// Policy Name
+		{
+			Type: "ColumnSet",
+			Columns: []teamsAdaptiveCardColumn{
+				{
+					Type:  "Column",
+					Width: "auto",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type:   "TextBlock",
+							Text:   "**Policy:**",
+							Weight: "Bolder",
+							Wrap:   true,
+						},
+					},
+				},
+				{
+					Type:  "Column",
+					Width: "stretch",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type: "TextBlock",
+							Text: policyName,
+							Wrap: true,
+						},
+					},
+				},
+			},
+		},
+		// Resource Name
+		{
+			Type: "ColumnSet",
+			Columns: []teamsAdaptiveCardColumn{
+				{
+					Type:  "Column",
+					Width: "auto",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type:   "TextBlock",
+							Text:   "**Resource:**",
+							Weight: "Bolder",
+							Wrap:   true,
+						},
+					},
+				},
+				{
+					Type:  "Column",
+					Width: "stretch",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type: "TextBlock",
+							Text: resourceName,
+							Wrap: true,
+						},
+					},
+				},
+			},
+		},
+		// Account
+		{
+			Type: "ColumnSet",
+			Columns: []teamsAdaptiveCardColumn{
+				{
+					Type:  "Column",
+					Width: "auto",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type:   "TextBlock",
+							Text:   "**Account:**",
+							Weight: "Bolder",
+							Wrap:   true,
+						},
+					},
+				},
+				{
+					Type:  "Column",
+					Width: "stretch",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type: "TextBlock",
+							Text: accountName,
+							Wrap: true,
+						},
+					},
+				},
+			},
+		},
+		// Cloud Type
+		{
+			Type: "ColumnSet",
+			Columns: []teamsAdaptiveCardColumn{
+				{
+					Type:  "Column",
+					Width: "auto",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type:   "TextBlock",
+							Text:   "**Cloud:**",
+							Weight: "Bolder",
+							Wrap:   true,
+						},
+					},
+				},
+				{
+					Type:  "Column",
+					Width: "stretch",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type: "TextBlock",
+							Text: cloudType,
+							Wrap: true,
+						},
+					},
+				},
+			},
+		},
+		// Region
+		{
+			Type: "ColumnSet",
+			Columns: []teamsAdaptiveCardColumn{
+				{
+					Type:  "Column",
+					Width: "auto",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type:   "TextBlock",
+							Text:   "**Region:**",
+							Weight: "Bolder",
+							Wrap:   true,
+						},
+					},
+				},
+				{
+					Type:  "Column",
+					Width: "stretch",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type: "TextBlock",
+							Text: region,
+							Wrap: true,
+						},
+					},
+				},
+			},
+		},
+		// Alert Time
+		{
+			Type: "ColumnSet",
+			Columns: []teamsAdaptiveCardColumn{
+				{
+					Type:  "Column",
+					Width: "auto",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type:   "TextBlock",
+							Text:   "**Alert Time:**",
+							Weight: "Bolder",
+							Wrap:   true,
+						},
+					},
+				},
+				{
+					Type:  "Column",
+					Width: "stretch",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type: "TextBlock",
+							Text: alertTime.Format("2006-01-02 15:04:05 +0700"),
+							Wrap: true,
+						},
+					},
+				},
+			},
+		},
+		// Tags
+		{
+			Type: "ColumnSet",
+			Columns: []teamsAdaptiveCardColumn{
+				{
+					Type:  "Column",
+					Width: "auto",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type:   "TextBlock",
+							Text:   "**Tags:**",
+							Weight: "Bolder",
+							Wrap:   true,
+						},
+					},
+				},
+				{
+					Type:  "Column",
+					Width: "stretch",
+					Items: []teamsAdaptiveCardElement{
+						{
+							Type: "TextBlock",
+							Text: tags,
+							Wrap: true,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Build actions
+	var actions []teamsAdaptiveCardAction
+	if clickupURL != "" {
+		actions = append(actions, teamsAdaptiveCardAction{
+			Type:  "Action.OpenUrl",
+			Title: "View ClickUp Task",
+			URL:   clickupURL,
+		})
+	}
+
+	if prismaURL != "" {
+		actions = append(actions, teamsAdaptiveCardAction{
+			Type:  "Action.OpenUrl",
+			Title: "View Prisma Detail Alert",
+			URL:   prismaURL,
+		})
+	}
+
+	// Build the Adaptive Card
+	adaptiveCard := teamsAdaptiveCardMessage{
+		Type: "message",
+		Attachments: []teamsAdaptiveCardAttachment{
+			{
+				ContentType: "application/vnd.microsoft.card.adaptive",
+				ContentURL:  nil,
+				Content: teamsAdaptiveCardContent{
+					Schema:  "http://adaptivecards.io/schemas/adaptive-card.json",
+					Type:    "AdaptiveCard",
+					Version: "1.4",
+					Body:    body,
+					Actions: actions,
+				},
+			},
+		},
+	}
+
+	// Marshal to JSON
+	jsonData, err := json.Marshal(adaptiveCard)
+	if err != nil {
+		return fmt.Errorf("failed to marshal Teams adaptive card: %w", err)
+	}
+
+	// Send the webhook
+	req, err := http.NewRequest("POST", t.webhookURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("failed to create Teams webhook request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send Teams webhook: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body2, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read Teams response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("Teams webhook failed (status %d): %s", resp.StatusCode, string(body2))
+	}
+
+	return nil
+}
+
 // getSeverityColorName returns an Adaptive Card color name for the severity level
 func (t *TeamsClient) getSeverityColorName(severity string) string {
 	switch strings.ToLower(severity) {

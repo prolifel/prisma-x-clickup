@@ -32,8 +32,8 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 	log.Infof("Payload: %v", string(c.Request().Body()))
 
 	// Parse the request body
-	var alerts []models.PrismaAlert
-	var singleAlert models.PrismaAlert
+	var alerts []models.CustomPrismaAlert
+	var singleAlert models.CustomPrismaAlert
 
 	// Try to parse as array first
 	if err := c.BodyParser(&alerts); err != nil {
@@ -45,7 +45,7 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 			})
 		}
 		// If single object parsed successfully, add it to alerts slice
-		alerts = []models.PrismaAlert{singleAlert}
+		alerts = []models.CustomPrismaAlert{singleAlert}
 	}
 
 	// If no alerts received

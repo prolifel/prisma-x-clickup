@@ -41,7 +41,7 @@ func NewClickUpClient(cfg *config.Config) *ClickUpClient {
 	}
 }
 
-func (c *ClickUpClient) CreateTask(alert *models.PrismaAlert) (*CreateTaskResponse, error) {
+func (c *ClickUpClient) CreateTask(alert *models.CustomPrismaAlert) (*CreateTaskResponse, error) {
 	url := fmt.Sprintf("https://api.clickup.com/api/v2/list/%s/task", c.listID)
 
 	taskReq := CreateTaskRequest{
