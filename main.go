@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"io"
 	"os"
 	"prisma-webhook/config"
 	"prisma-webhook/handlers"
@@ -9,13 +9,22 @@ import (
 	"prisma-webhook/services"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 func main() {
 	// Load configuration
 	cfg := config.Load()
+
+	// default logger
+	file, err := os.OpenFile("/logs/webhook.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	iw := io.MultiWriter(os.Stdout, file)
+	log.SetOutput(iw)
+	defer file.Close()
 
 	// Initialize services
 	clickUpClient := services.NewClickUpClient(cfg)
@@ -29,16 +38,6 @@ func main() {
 		AppName: "Prisma Cloud to ClickUp Webhook",
 	})
 
-	// Middleware
-	// Custom File Writer
-	file, err := os.OpenFile("./webhook.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer file.Close()
-	app.Use(logger.New(logger.Config{
-		Output: file,
-	}))
 	app.Use(recover.New())
 
 	// Routes
@@ -53,7 +52,7 @@ func main() {
 	app.Get("/", middleware.GeneralRateLimit(), func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"service": "Prisma Cloud to ClickUp Webhook",
-			"version": "1.2.0",
+			"version": "1.3.0",
 			"status":  "running",
 		})
 	})
@@ -68,7 +67,7 @@ func main() {
 
 			// choose handler based on header
 			if xType != "alerta" && xType != "mandatory" {
-				log.Printf("Unknown X-Type: %s", xType)
+				log.Debugf("Unknown X-Type: %s", xType)
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 					"error": "Invalid or missing type header",
 				})
@@ -80,7 +79,7 @@ func main() {
 	)
 
 	// Start server
-	log.Printf("Starting server on port %s", cfg.Port)
+	log.Debugf("Starting server on port %s", cfg.Port)
 	if err := app.Listen(":" + cfg.Port); err != nil {
 		log.Fatal(err)
 	}

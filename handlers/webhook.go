@@ -29,7 +29,7 @@ func NewWebhookHandler(
 func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 	// Log the incoming request
 	log.Infof("Received webhook from %s", c.IP())
-	log.Infof("Payload: %v", string(c.Request().Body()))
+	// log.Infof("Payload: %v", string(c.Request().Body()))
 	log.Infof("Received type: %s", c.Get("X-Type"))
 
 	// Parse the request body
@@ -40,7 +40,7 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 	if err := c.BodyParser(&alerts); err != nil {
 		// If array parsing fails, try single object
 		if err := c.BodyParser(&singleAlert); err != nil {
-			log.Infof("Failed to parse webhook payload: %v, request: %v", err, string(c.Body()))
+			log.Infof("Failed to parse webhook payload: %v, request: %v", err, string(c.Request().Body()))
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Invalid request payload",
 			})
