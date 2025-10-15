@@ -24,7 +24,8 @@ type Config struct {
 	SharePointSiteID  string
 
 	// Microsoft Teams
-	TeamsWebhookURL string
+	TeamsAlertaWebhookURL    string
+	TeamsMandatoryWebhookURL string
 }
 
 func Load() *Config {
@@ -92,22 +93,28 @@ func Load() *Config {
 	}
 
 	// Microsoft Teams Webhook (optional)
-	teamsWebhookURL := os.Getenv("TEAMS_WEBHOOK_URL")
-	if teamsWebhookURL != "" {
-		log.Println("Teams webhook integration enabled")
+	teamsAlertaWebhookURL := os.Getenv("TEAMS_ALERTA_WEBHOOK_URL")
+	if teamsAlertaWebhookURL != "" {
+		log.Println("Teams alerta webhook integration enabled")
+	}
+
+	teamsMandatoryWebhookURL := os.Getenv("TEAMS_MANDATORY_WEBHOOK_URL")
+	if teamsMandatoryWebhookURL != "" {
+		log.Println("Teams mandatory webhook integration enabled")
 	}
 
 	return &Config{
-		Port:              port,
-		ClickUpAPIToken:   clickUpToken,
-		ClickUpListID:     clickUpListID,
-		ClickUpAssignees:  assignees,
-		WebhookAPIKey:     webhookAPIKey,
-		AllowedIPs:        allowedIPs,
-		AzureTenantID:     azureTenantID,
-		AzureClientID:     azureClientID,
-		AzureClientSecret: azureClientSecret,
-		SharePointSiteID:  sharePointSiteID,
-		TeamsWebhookURL:   teamsWebhookURL,
+		Port:                     port,
+		ClickUpAPIToken:          clickUpToken,
+		ClickUpListID:            clickUpListID,
+		ClickUpAssignees:         assignees,
+		WebhookAPIKey:            webhookAPIKey,
+		AllowedIPs:               allowedIPs,
+		AzureTenantID:            azureTenantID,
+		AzureClientID:            azureClientID,
+		AzureClientSecret:        azureClientSecret,
+		SharePointSiteID:         sharePointSiteID,
+		TeamsAlertaWebhookURL:    teamsAlertaWebhookURL,
+		TeamsMandatoryWebhookURL: teamsMandatoryWebhookURL,
 	}
 }

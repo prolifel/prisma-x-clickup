@@ -30,6 +30,7 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 	// Log the incoming request
 	log.Infof("Received webhook from %s", c.IP())
 	log.Infof("Payload: %v", string(c.Request().Body()))
+	log.Infof("Received type: %s", c.Get("X-Type"))
 
 	// Parse the request body
 	var alerts []models.CustomPrismaAlert
@@ -95,7 +96,7 @@ func (h *WebhookHandler) HandlePrismaWebhook(c *fiber.Ctx) error {
 
 		// Step 2: Send Teams notification (if enabled)
 		if h.teamsClient.IsEnabled() {
-			err = h.teamsClient.SendTeamsNotificationV2(&alert, clickupURL, prismaURL)
+			err = h.teamsClient.SendTeamsNotificationV2(&alert, clickupURL, prismaURL, c.Get("X-Type"))
 			if err != nil {
 				errMsg := "Failed to send Teams notification: " + err.Error()
 				log.Infof("Warning for alert %d: %s", i+1, errMsg)

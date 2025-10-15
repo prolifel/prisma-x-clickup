@@ -14,7 +14,8 @@ import (
 )
 
 type TeamsClient struct {
-	webhookURL string
+	webhookAlertaURL    string
+	webhookMandatoryURL string
 }
 
 // Adaptive Card structures for Power Automate
@@ -61,40 +62,16 @@ type teamsAdaptiveCardAction struct {
 	URL   string `json:"url"`
 }
 
-type teamsSection struct {
-	ActivityTitle    string      `json:"activityTitle,omitempty"`
-	ActivitySubtitle string      `json:"activitySubtitle,omitempty"`
-	ActivityImage    string      `json:"activityImage,omitempty"`
-	Facts            []teamsFact `json:"facts,omitempty"`
-	Markdown         bool        `json:"markdown,omitempty"`
-	Text             string      `json:"text,omitempty"`
-}
-
-type teamsFact struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-type teamsPotentialAction struct {
-	Type    string              `json:"@type"`
-	Name    string              `json:"name"`
-	Targets []teamsActionTarget `json:"targets,omitempty"`
-}
-
-type teamsActionTarget struct {
-	OS  string `json:"os"`
-	URI string `json:"uri"`
-}
-
 func NewTeamsClient(cfg *config.Config) *TeamsClient {
 	return &TeamsClient{
-		webhookURL: cfg.TeamsWebhookURL,
+		webhookAlertaURL:    cfg.TeamsAlertaWebhookURL,
+		webhookMandatoryURL: cfg.TeamsMandatoryWebhookURL,
 	}
 }
 
 // IsEnabled returns true if the TeamsClient is properly configured
 func (t *TeamsClient) IsEnabled() bool {
-	return t.webhookURL != ""
+	return t.webhookAlertaURL != "" && t.webhookMandatoryURL != ""
 }
 
 // SendTeamsNotification sends an Adaptive Card notification to Microsoft Teams via webhook (Power Automate)
@@ -388,7 +365,7 @@ func (t *TeamsClient) SendTeamsNotification(alert *models.PrismaAlert, clickupUR
 	}
 
 	// Send the webhook
-	req, err := http.NewRequest("POST", t.webhookURL, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", t.webhookAlertaURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create Teams webhook request: %w", err)
 	}
@@ -414,7 +391,7 @@ func (t *TeamsClient) SendTeamsNotification(alert *models.PrismaAlert, clickupUR
 	return nil
 }
 
-func (t *TeamsClient) SendTeamsNotificationV2(alert *models.CustomPrismaAlert, clickupURL string, prismaURL string) error {
+func (t *TeamsClient) SendTeamsNotificationV2(alert *models.CustomPrismaAlert, clickupURL string, prismaURL string, webhookType string) error {
 	if !t.IsEnabled() {
 		return fmt.Errorf("Teams client is not properly configured")
 	}
@@ -734,7 +711,12 @@ func (t *TeamsClient) SendTeamsNotificationV2(alert *models.CustomPrismaAlert, c
 	}
 
 	// Send the webhook
-	req, err := http.NewRequest("POST", t.webhookURL, bytes.NewBuffer(jsonData))
+	webhookUrl := t.webhookAlertaURL
+	if webhookType == "mandatory" {
+		webhookUrl = t.webhookMandatoryURL
+	}
+
+	req, err := http.NewRequest("POST", webhookUrl, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create Teams webhook request: %w", err)
 	}

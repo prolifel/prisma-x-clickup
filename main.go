@@ -63,6 +63,19 @@ func main() {
 		middleware.IPAllowlist(cfg.AllowedIPs),
 		middleware.APIKeyAuth(cfg.WebhookAPIKey),
 		middleware.WebhookRateLimit(),
+		func(c *fiber.Ctx) error {
+			xType := c.Get("X-Type")
+
+			// choose handler based on header
+			if xType != "alerta" && xType != "mandatory" {
+				log.Printf("Unknown X-Type: %s", xType)
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+					"error": "Invalid or missing type header",
+				})
+			}
+
+			return c.Next()
+		},
 		webhookHandler.HandlePrismaWebhook,
 	)
 
